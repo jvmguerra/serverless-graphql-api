@@ -23,7 +23,7 @@ provider:
         - dynamodb:GetShardIterator
         - dynamodb:DescribeStream
         - dynamodb:ListStreams
-      Resource: arn:aws:dynamodb:us-east-1:*:*
+      Resource: arn:aws:dynamodb:sa-east-1:*:*
 
 functions:
   graphql:
@@ -50,6 +50,13 @@ functions:
               - SongsDynamoDbTable
               - StreamArn
           batchSize: 1
+      - stream:
+          type: dynamodb
+          arn:
+            Fn::GetAtt:
+              - AddressesDynamoDbTable
+              - StreamArn
+          batchSize: 1
 
 resources:
   Resources:
@@ -74,6 +81,22 @@ resources:
       DeletionPolicy: Retain
       Properties:
         TableName: 'songs'
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+        ProvisionedThroughput:
+          ReadCapacityUnits: 1
+          WriteCapacityUnits: 1
+        StreamSpecification:
+          StreamViewType: NEW_AND_OLD_IMAGES
+    AddressesDynamoDbTable:
+      Type: AWS::DynamoDB::Table
+      DeletionPolicy: Retain
+      Properties:
+        TableName: 'addresses'
         AttributeDefinitions:
           - AttributeName: id
             AttributeType: S
